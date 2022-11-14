@@ -253,6 +253,7 @@ df_twitter_arch['rating_denominator'] = df_twitter_arch['rating_denominator'].as
 ```
 
 Test
+Use the info method to confirm the datatypes have been changed for all three dataframes as seen with the twitter archive dataframe.
 ```
 #confirm that the datatype for the columns listed above has been changed
 df_twitter_arch.info()
@@ -280,3 +281,30 @@ puppo                         2356 non-null object
 dtypes: datetime64[ns](1), float64(6), object(10)
 memory usage: 313.0+ KB
 ```
+
+### Issue #2: Multiple null values in 'in_reply_to_status_id' and 'in_reply_to_user_id' columns 
+
+Define:
+
+Code:
+
+Test:
+
+### Issue #3: Remove retweets - only original tweets are required
+Define:
+
+Code:
+
+Test:
+
+### Issue #4: Remove retweet columns
+
+### Issue #5: Dog stages are represented as individual columns each with numerous null values
+
+### Issue #6: HTML Tags in source column
+
+### Issue #7: Non-descriptive column headers in df_image_predictions dataframe 
+
+# Storing Data
+
+# Analyzing and visualizing data
