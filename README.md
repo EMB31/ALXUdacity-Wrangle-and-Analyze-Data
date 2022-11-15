@@ -2,14 +2,15 @@
 This project involves wrangling and analyzing the WeRateDogs twitter archive.
 For this project data was gathered from three different sources for analysis.
 
-The project contains the following files:
-1. wrangle_act (this contains the code for the wrangle process and visualization)
-2. wrangle_report (contains a report describing the wrangling process)
-3. act_report (this a report about the entire project and its finding aimed to serve as a blog post type document)
-4. twitter-archive-enhanced.csv file (WeRateDogs twitter archive data)
-5. tweet_json.txt (contains additional data acquired via Twitter API)
-6. image_predictions.tsv (contains the tweet image prediction data)
-7. twitter_archive_master.csv (master dataset following merge of the 3 datasets)
+## Table of Contents
+
+* [Introduction](#introduction)
+* [Data Gathering](#data-gathering)
+* [Assessing Data](#assessing-data)
+* [Cleaning Data](#cleaning-data)
+* [Storing Data](#storing-data)
+* [Analyzing and Visualizing Data](#analyzing-and-visualizing-data)
+
 
 # Introduction
 The WeRateDogs twitter archive data was analyzed for this project. WeRateDogs is a twitter account that rates people's dog often with humorous comments about the dogs. 
@@ -20,6 +21,15 @@ There were 3 datasets to be acquired from 3 different sources:
 3. Additional data queried via twitter API and loaded into a txt file.
 
 The datasets contain the tweetid, user_id, timestamp for a tweet, source, tweet text, retweets, rating numerator and denominator, dog name, dog stage, amongst others.
+
+The project contains the following files:
+1. wrangle_act (this contains the code for the wrangle process and visualization)
+2. wrangle_report (contains a report describing the wrangling process)
+3. act_report (this a report about the entire project and its finding aimed to serve as a blog post type document)
+4. twitter-archive-enhanced.csv file (WeRateDogs twitter archive data)
+5. tweet_json.txt (contains additional data acquired via Twitter API)
+6. image_predictions.tsv (contains the tweet image prediction data)
+7. twitter_archive_master.csv (master dataset following merge of the 3 datasets)
 
 # Data Gathering
 Each dataset was acquired differently:
@@ -252,12 +262,12 @@ Each of the codes above should return 'True' if both copies are the same.
 
 ### Issue #1: Timestamp, tweet_id, rating_numerator and rating_denominator columns have incorrect datatypes
 
-Define
+Define:
 - Convert the Timestamp column to datetimecolumn using pandas to_datetime() method.
 - Convert tweet_id column to string
 - Convert rating_numerator and rating_denomintor columns to float
 
-Code
+Code:
 ```
 #Convert timestamp column from a string to a datetime column
 df_twitter_arch['timestamp'] = pd.to_datetime(df_twitter_arch['timestamp'])
@@ -272,7 +282,7 @@ df_twitter_arch['rating_numerator'] = df_twitter_arch['rating_numerator'].astype
 df_twitter_arch['rating_denominator'] = df_twitter_arch['rating_denominator'].astype(float)
 ```
 
-Test
+Test:
 
 Use the info method to confirm the datatypes have been changed for all three dataframes as seen with the twitter archive dataframe.
 ```
@@ -316,6 +326,7 @@ df_twitter_arch.drop(columns=['in_reply_to_status_id', 'in_reply_to_user_id'], a
 ```
 
 Test:
+
 Use the info method to confirm if columns have been removed from the dataframe.
 
 ### Issue #3: Remove retweets - only original tweets are required
@@ -422,6 +433,7 @@ df_twitter_arch.drop(columns=['doggo','puppo','floofer','pupper'],axis=1, inplac
 ```
 
 Test:
+
 I confirmed that the dogstage column had been created using the info method.
 ![image](https://user-images.githubusercontent.com/113180085/201865617-12a32d2c-6669-4971-bd63-03e3ddc9b1c1.png)
 
@@ -461,6 +473,7 @@ From the test, the html tags have been removed  and there 4 distinct sources as 
 A few of the column headers in the image predictions dataframe are not clear enough.
 
 Define:
+
 Change the column headers for p1, p1_conf, p1_dog, p2, p2_conf, p2_dog, p3, p3_dog
 
 Code:
@@ -472,22 +485,23 @@ df_image_predictions.rename(columns = {'p1':'Prediction1','p2':'Prediction2','p3
 ```
 
 Test: 
+
 Use the info method to confirm column name changes.
 
 # Storing Data
 Having gathered, assessed and cleaned the 3 datasets they were then merged into a master dataset. Note that merging the dataset covers the second tidiness issue mentioned. 
 
-1st the data were merged into one dataframe and then a csv file was created from it.
-,,,
+I first merged the three dataframes into one dataframe and then a csv file was created from it.
+```
 #Merge 3 dataframes into 1
 twitter_archive_master = df_twitter_arch.merge(df_twt_apidata, how = 'left').merge(df_image_predictions,how='left')
 
 # Confirm that all the columns from the 3 dataframes are present
 twitter_archive_master.info()
 
-# Creat a csv file from the master dataframe created.
+# Create a csv file from the master dataframe created.
 twitter_archive_master.to_csv('twitter_archive_master.csv', sep=';', index=False)
-,,,
+```
 
-# Analyzing and visualizing data
-I then proceeded to generate visuals from the master datframe created.
+# Analyzing and Visualizing Data
+I then proceeded to generate visuals from the master dataframe created.
