@@ -198,7 +198,7 @@ memory usage: 54.6 KB
 ```
 
 ```
-#This is to check if there are any negative or unuasual values
+#This is to check if there are any negative or unusual values
 df_twitter_arch.describe()
 ```
 ![image](https://user-images.githubusercontent.com/113180085/201716104-a9532f1c-2c92-46b8-9afe-df43cf7f791a.png)
@@ -253,6 +253,7 @@ df_twitter_arch['rating_denominator'] = df_twitter_arch['rating_denominator'].as
 ```
 
 Test
+
 Use the info method to confirm the datatypes have been changed for all three dataframes as seen with the twitter archive dataframe.
 ```
 #confirm that the datatype for the columns listed above has been changed
@@ -286,25 +287,73 @@ memory usage: 313.0+ KB
 
 Define:
 
+Drop the 'in_reply_to_status_id' and 'in_reply_to_user_id' columns
+
 Code:
+,,,
+# Remove the 'in_reply_to_status_id' and 'in_reply_to_user_id' columns
+df_twitter_arch.drop(columns=['in_reply_to_status_id', 'in_reply_to_user_id'], axis=1, inplace=True)
+,,,
+
+Test:
+Use the info method to confirm if columns have been removed from the dataframe.
+
+### Issue #3: Remove retweets - only original tweets are required
+Define:
+
+Remove all retweets by deleting rows with retweets
+
+Code:
+,,,
+# locate all rows for which the retweeted_status_id isnot null
+retweets = df_twitter_arch[df_twitter_arch.retweeted_status_id.notnull()].index.tolist()
+
+#drop retweet rows
+df_twitter_arch.drop(retweets, inplace = True)
+,,,
 
 Test:
 
-### Issue #3: Remove retweets - only original tweets are required
+Again use the info method to confirm that the columns have been dropped as expected.
+
+### Issue #4: Remove retweet columns
+Define:
+
+Drop all retweet columns - retweeted_status_id, retweeted_status_user_id and retweeted_status_timestamp columns
+Code:
+,,,
+
+,,,
+
+Test:
+
+### Issue #5: Dog stages are represented as individual columns each with numerous null values
 Define:
 
 Code:
 
 Test:
 
-### Issue #4: Remove retweet columns
-
-### Issue #5: Dog stages are represented as individual columns each with numerous null values
 
 ### Issue #6: HTML Tags in source column
+Define:
 
-### Issue #7: Non-descriptive column headers in df_image_predictions dataframe 
+Code:
+
+Test:
+
+### Issue #7: Non-descriptive column headers in df_image_predictions dataframe
+Define:
+
+Code:
+
+Test: 
 
 # Storing Data
+Having gathered, assessed and cleaned the 3 datasets they were then merged into a master dataset.
+1st they were merged into one dataframe and then a csv file was created from it.
+,,,
+
+,,,
 
 # Analyzing and visualizing data
