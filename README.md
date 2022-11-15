@@ -229,6 +229,26 @@ Following the data assesment the following  data quality and tidiness issues wer
 # Cleaning Data
 
 The Define, Code and Test method was used for the data cleaning process.
+Note that before cleaning the data copies of the original data were made for backup.
+
+```
+# Make copies of original pieces of data
+df_twit_arch_copy = df_twitter_arch.copy()
+df_img_predict_copy = df_image_predictions.copy()
+df_twt_apidata_copy = df_twt_apidata.copy()
+```
+Confirm that the original dataframe and the copy are the same.
+```
+#confirm that the two dataframes are the same
+df_twit_arch_copy.shape == df_twitter_arch.shape
+
+#confirm that the two dataframes are the same
+df_img_predict_copy.shape == df_image_predictions.shape
+
+#confirm that the two dataframes are the same
+df_twt_apidata_copy.shape == df_twt_apidata.shape
+```
+Each of the codes above should return 'True' if both copies are the same.
 
 ### Issue #1: Timestamp, tweet_id, rating_numerator and rating_denominator columns have incorrect datatypes
 
@@ -290,10 +310,10 @@ Define:
 Drop the 'in_reply_to_status_id' and 'in_reply_to_user_id' columns
 
 Code:
-,,,
+```
 # Remove the 'in_reply_to_status_id' and 'in_reply_to_user_id' columns
 df_twitter_arch.drop(columns=['in_reply_to_status_id', 'in_reply_to_user_id'], axis=1, inplace=True)
-,,,
+```
 
 Test:
 Use the info method to confirm if columns have been removed from the dataframe.
@@ -304,56 +324,170 @@ Define:
 Remove all retweets by deleting rows with retweets
 
 Code:
-,,,
+```
 # locate all rows for which the retweeted_status_id isnot null
 retweets = df_twitter_arch[df_twitter_arch.retweeted_status_id.notnull()].index.tolist()
 
 #drop retweet rows
 df_twitter_arch.drop(retweets, inplace = True)
-,,,
+```
 
 Test:
 
 Again use the info method to confirm that the columns have been dropped as expected.
 
 ### Issue #4: Remove retweet columns
+Having removed all the retweet rows, the retweet related columns will need to be dropped.
+
 Define:
 
-Drop all retweet columns - retweeted_status_id, retweeted_status_user_id and retweeted_status_timestamp columns
-Code:
-,,,
+Drop all retweet columns that is 'retweeted_status_id', 'retweeted_status_user_id' and 'retweeted_status_timestamp'.
 
-,,,
+Code:
+```
+#drop retweeted_status_id, retweeted_status_user_id and retweeted_status_timestamp columns
+df_twitter_arch.drop(columns=['retweeted_status_id','retweeted_status_user_id','retweeted_status_timestamp'], axis=1, inplace=True)
+```
 
 Test:
+```
+#Confirm that all retweet columns have been removed
+df_twitter_arch.info()
+
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 2175 entries, 0 to 2355
+Data columns (total 12 columns):
+tweet_id              2175 non-null object
+timestamp             2175 non-null datetime64[ns]
+source                2175 non-null object
+text                  2175 non-null object
+expanded_urls         2117 non-null object
+rating_numerator      2175 non-null float64
+rating_denominator    2175 non-null float64
+name                  2175 non-null object
+doggo                 2175 non-null object
+floofer               2175 non-null object
+pupper                2175 non-null object
+puppo                 2175 non-null object
+dtypes: datetime64[ns](1), float64(2), object(9)
+memory usage: 220.9+ KB
+```
 
 ### Issue #5: Dog stages are represented as individual columns each with numerous null values
+
 Define:
 
+Convert the doggo, floofer, pupper and puppo columns into one column called dog stages
+
 Code:
+```
+# Replace None in stage columns with empty string as follows.
+df_twitter_arch.doggo.replace('None', '', inplace=True)  
+df_twitter_arch.floofer.replace('None','', inplace=True)
+df_twitter_arch.pupper.replace('None','', inplace=True)
+df_twitter_arch.puppo.replace('None','', inplace=True)
+
+# Combine stage columns by creating a dog stage column and appending the values  of the separate dog stage columns to the new column.
+df_twitter_arch['dog_stage'] = df_twitter_arch.doggo + df_twitter_arch.floofer + df_twitter_arch.pupper + df_twitter_arch.puppo
+
+#View distinct values present in the dog stage column
+df_twitter_arch['dog_stage'].value_counts()
+
+                1831
+pupper           224
+doggo             75
+puppo             24
+doggopupper       10
+floofer            9
+doggofloofer       1
+doggopuppo         1
+Name: dog_stage, dtype: int64
+```
+I then performed some formatting on the newly created column and then dropped the doggo, puppo, floofer and pupper columns.
+
+```
+#import required library
+import numpy as np
+
+# Format entries with multiple dog stages like doggopupper,doggopuppo,doggofloofer.
+df_twitter_arch.loc[df_twitter_arch.dog_stage == 'doggopupper', 'dog_stage'] = 'doggo,pupper' 
+df_twitter_arch.loc[df_twitter_arch.dog_stage == 'doggopuppo', 'dog_stage'] = 'doggo,puppo' 
+df_twitter_arch.loc[df_twitter_arch.dog_stage == 'doggofloofer', 'dog_stage'] = 'doggo,floofer'
+
+#Replace empty string with null
+df_twitter_arch['dog_stage'].replace('',np.nan,inplace=True)
+
+#drop doggo, puppo, floofer and puppeer columns
+df_twitter_arch.drop(columns=['doggo','puppo','floofer','pupper'],axis=1, inplace = True)
+```
 
 Test:
+I confirmed that the dogstage column had been created using the info method.
+![image](https://user-images.githubusercontent.com/113180085/201865617-12a32d2c-6669-4971-bd63-03e3ddc9b1c1.png)
 
 
 ### Issue #6: HTML Tags in source column
+
 Define:
 
+Remove the HTML tags in the source column
+
 Code:
+```
+from bs4 import BeautifulSoup as bs
+
+nohtml_source = []
+for line, row in df_twitter_arch.iterrows():
+    soup = bs(row.source, "lxml")
+    x = soup.find('a').contents[0]
+    nohtml_source.append(x)
+    
+df_twitter_arch['source'] = nohtml_source
+```
 
 Test:
+```
+df_twitter_arch['source'].value_counts()
+
+Twitter for iPhone     2042
+Vine - Make a Scene      91
+Twitter Web Client       31
+TweetDeck                11
+Name: source, dtype: int64
+```
+From the test, the html tags have been removed  and there 4 distinct sources as seen.
 
 ### Issue #7: Non-descriptive column headers in df_image_predictions dataframe
+A few of the column headers in the image predictions dataframe are not clear enough.
+
 Define:
+Change the column headers for p1, p1_conf, p1_dog, p2, p2_conf, p2_dog, p3, p3_dog
 
 Code:
+```
+#change the column headers
+df_image_predictions.rename(columns = {'p1':'Prediction1','p2':'Prediction2','p3':'Prediction3',
+                                      'p1_conf':'Pred1_Confidence','p2_conf':'Pred2_Confidence','p3_conf':'Pred3_confidence',
+                                      'p1_dog':'Pred1_IsDog','p2_dog':'Pred2_IsDog','p3_dog':'Pred3_IsDog'}, inplace = True)
+```
 
 Test: 
+Use the info method to confirm column name changes.
 
 # Storing Data
-Having gathered, assessed and cleaned the 3 datasets they were then merged into a master dataset.
-1st they were merged into one dataframe and then a csv file was created from it.
-,,,
+Having gathered, assessed and cleaned the 3 datasets they were then merged into a master dataset. Note that merging the dataset covers the second tidiness issue mentioned. 
 
+1st the data were merged into one dataframe and then a csv file was created from it.
+,,,
+#Merge 3 dataframes into 1
+twitter_archive_master = df_twitter_arch.merge(df_twt_apidata, how = 'left').merge(df_image_predictions,how='left')
+
+# Confirm that all the columns from the 3 dataframes are present
+twitter_archive_master.info()
+
+# Creat a csv file from the master dataframe created.
+twitter_archive_master.to_csv('twitter_archive_master.csv', sep=';', index=False)
 ,,,
 
 # Analyzing and visualizing data
+I then proceeded to generate visuals from the master datframe created.
